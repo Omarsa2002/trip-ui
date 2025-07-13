@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: none;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Form Styles */
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #2196F3;
+            padding-bottom: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2196F3;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Edit Form Styles */
+        .edit-form {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+            display: none;
+        }
+
+        .edit-form h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .edit-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .edit-form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✈️ Trip Management Dashboard</h1>
+            <p>Manage all your travel agency trips efficiently</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Alert Messages -->
+            <div id="alert" class="alert"></div>
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Processing...</p>
+            </div>
+
+            <!-- Edit Form (Hidden by default) -->
+            <div id="editForm" class="edit-form">
+                <h3>Edit Trip</h3>
+                <form id="editTripForm">
+                    <div class="edit-form-row">
+                        <div class="form-group">
+                            <label for="editDestination">Destination</label>
+                            <input type="text" id="editDestination" name="destination" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDate">Date</label>
+                            <input type="date" id="editDate" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editPrice">Price ($)</label>
+                            <input type="number" id="editPrice" name="price" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editSeats">Seats Available</label>
+                            <input type="number" id="editSeats" name="seats" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Update Trip</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Add New Trips Form -->
+            <div class="form-section">
+                <h2>Add New Trips</h2>
+                <form id="addTripsForm">
+                    <div id="tripRows">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="destination_1">Destination</label>
+                                <input type="text" id="destination_1" name="destination[]" placeholder="e.g., Cairo to Luxor" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="date_1">Date</label>
+                                <input type="date" id="date_1" name="date[]" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="price_1">Price ($)</label>
+                                <input type="number" id="price_1" name="price[]" min="0" step="0.01" placeholder="750" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="seats_1">Seats Available</label>
+                                <input type="number" id="seats_1" name="seats[]" min="1" placeholder="40" required>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-danger btn-remove" onclick="removeRow(this)" style="display: none;">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="addRow()">+ Add Another Trip</button>
+                        <button type="submit" class="btn btn-primary">Add All Trips</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Trips Table -->
+            <div class="table-container">
+                <table id="tripsTable">
+                    <thead>
+                        <tr>
+                            <th>Destination</th>
+                            <th>Date</th>
+                            <th>Price</th>
+                            <th>Seats Available</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tripsTableBody">
+                        <!-- Trips will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for demonstration
+        let trips = [
+            { id: 1, destination: "Cairo to Luxor", date: "2025-07-20", price: 750, seats: 40 },
+            { id: 2, destination: "Alexandria to Aswan", date: "2025-08-15", price: 920, seats: 25 },
+            { id: 3, destination: "Hurghada to Sharm El Sheikh", date: "2025-09-10", price: 450, seats: 60 }
+        ];
+
+        let nextId = 4;
+        let rowCount = 1;
+        let editingTripId = null;
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTrips();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('addTripsForm').addEventListener('submit', handleAddTrips);
+            document.getElementById('editTripForm').addEventListener('submit', handleEditTrip);
+        }
+
+        // Display functions
+        function showAlert(message, type = 'success') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Trip management functions
+        function loadTrips() {
+            const tbody = document.getElementById('tripsTableBody');
+            tbody.innerHTML = '';
+
+            trips.forEach(trip => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${trip.destination}</td>
+                    <td>${formatDate(trip.date)}</td>
+                    <td>$${trip.price.toFixed(2)}</td>
+                    <td>${trip.seats}</td>
+                    <td class="actions">
+                        <button class="btn btn-warning" onclick="editTrip(${trip.id})">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteTrip(${trip.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        // Add trip functionality
+        function addRow() {
+            rowCount++;
+            const tripRows = document.getElementById('tripRows');
+            const newRow = document.createElement('div');
+            newRow.className = 'form-row';
+            newRow.innerHTML = `
+                <div class="form-group">
+                    <label for="destination_${rowCount}">Destination</label>
+                    <input type="text" id="destination_${rowCount}" name="destination[]" placeholder="e.g., Cairo to Luxor" required>
+                </div>
+                <div class="form-group">
+                    <label for="date_${rowCount}">Date</label>
+                    <input type="date" id="date_${rowCount}" name="date[]" required>
+                </div>
+                <div class="form-group">
+                    <label for="price_${rowCount}">Price ($)</label>
+                    <input type="number" id="price_${rowCount}" name="price[]" min="0" step="0.01" placeholder="750" required>
+                </div>
+                <div class="form-group">
+                    <label for="seats_${rowCount}">Seats Available</label>
+                    <input type="number" id="seats_${rowCount}" name="seats[]" min="1" placeholder="40" required>
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-danger btn-remove" onclick="removeRow(this)">Remove</button>
+                </div>
+            `;
+            tripRows.appendChild(newRow);
+            updateRemoveButtons();
+        }
+
+        function removeRow(button) {
+            button.closest('.form-row').remove();
+            updateRemoveButtons();
+        }
+
+        function updateRemoveButtons() {
+            const rows = document.querySelectorAll('#tripRows .form-row');
+            rows.forEach((row, index) => {
+                const removeBtn = row.querySelector('.btn-remove');
+                if (rows.length > 1) {
+                    removeBtn.style.display = 'block';
+                } else {
+                    removeBtn.style.display = 'none';
+                }
+            });
+        }
+
+        function handleAddTrips(event) {
+            event.preventDefault();
+            showLoading();
+
+            const formData = new FormData(event.target);
+            const destinations = formData.getAll('destination[]');
+            const dates = formData.getAll('date[]');
+            const prices = formData.getAll('price[]');
+            const seats = formData.getAll('seats[]');
+
+            const newTrips = [];
+            for (let i = 0; i < destinations.length; i++) {
+                newTrips.push({
+                    id: nextId++,
+                    destination: destinations[i],
+                    date: dates[i],
+                    price: parseFloat(prices[i]),
+                    seats: parseInt(seats[i])
+                });
+            }
+
+            // Simulate API call
+            setTimeout(() => {
+                trips.push(...newTrips);
+                loadTrips();
+                event.target.reset();
+                
+                // Reset form to single row
+                const tripRows = document.getElementById('tripRows');
+                tripRows.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="destination_1">Destination</label>
+                            <input type="text" id="destination_1" name="destination[]" placeholder="e.g., Cairo to Luxor" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_1">Date</label>
+                            <input type="date" id="date_1" name="date[]" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="price_1">Price ($)</label>
+                            <input type="number" id="price_1" name="price[]" min="0" step="0.01" placeholder="750" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="seats_1">Seats Available</label>
+                            <input type="number" id="seats_1" name="seats[]" min="1" placeholder="40" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-danger btn-remove" onclick="removeRow(this)" style="display: none;">Remove</button>
+                        </div>
+                    </div>
+                `;
+                rowCount = 1;
+                
+                hideLoading();
+                showAlert(`Successfully added ${newTrips.length} trip(s)!`, 'success');
+            }, 1000);
+        }
+
+        // Edit trip functionality
+        function editTrip(id) {
+            const trip = trips.find(t => t.id === id);
+            if (!trip) return;
+
+            editingTripId = id;
+            document.getElementById('editDestination').value = trip.destination;
+            document.getElementById('editDate').value = trip.date;
+            document.getElementById('editPrice').value = trip.price;
+            document.getElementById('editSeats').value = trip.seats;
+            
+            document.getElementById('editForm').style.display = 'block';
+            document.getElementById('editForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            document.getElementById('editForm').style.display = 'none';
+            editingTripId = null;
+        }
+
+        function handleEditTrip(event) {
+            event.preventDefault();
+            if (!editingTripId) return;
+
+            showLoading();
+            
+            const formData = new FormData(event.target);
+            const updatedTrip = {
+                id: editingTripId,
+                destination: formData.get('destination'),
+                date: formData.get('date'),
+                price: parseFloat(formData.get('price')),
+                seats: parseInt(formData.get('seats'))
+            };
+
+            // Simulate API call
+            setTimeout(() => {
+                const index = trips.findIndex(t => t.id === editingTripId);
+                if (index !== -1) {
+                    trips[index] = updatedTrip;
+                    loadTrips();
+                    cancelEdit();
+                    hideLoading();
+                    showAlert('Trip updated successfully!', 'success');
+                }
+            }, 1000);
+        }
+
+        // Delete trip functionality
+        function deleteTrip(id) {
+            if (!confirm('Are you sure you want to delete this trip?')) return;
+
+            showLoading();
+
+            // Simulate API call
+            setTimeout(() => {
+                trips = trips.filter(t => t.id !== id);
+                loadTrips();
+                hideLoading();
+                showAlert('Trip deleted successfully!', 'success');
+            }, 800);
+        }
+
+        // API simulation functions (for demonstration)
+        function simulateAPICall(method, endpoint, data = null) {
+            console.log(`${method} ${endpoint}`, data);
+            
+            // In a real implementation, you would use fetch:
+            /*
+            return fetch(endpoint, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: data ? JSON.stringify(data) : null
+            }).then(response => response.json());
+            */
+        }
+    </script>
+</body>
+</html>
