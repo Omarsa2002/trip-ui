@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trip Management Dashboard</title>
     <style>
+        /* General Styles */
         * {
             margin: 0;
             padding: 0;
@@ -12,14 +13,18 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif; /* Using Inter font */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top */
         }
 
         .container {
             max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -32,6 +37,7 @@
             color: white;
             padding: 30px;
             text-align: center;
+            border-radius: 15px 15px 0 0; /* Rounded top corners */
         }
 
         .header h1 {
@@ -55,8 +61,9 @@
             margin-bottom: 20px;
             border-radius: 8px;
             border: none;
-            display: none;
-            animation: slideIn 0.3s ease;
+            display: none; /* Hidden by default */
+            animation: slideIn 0.3s ease forwards; /* Use forwards to keep the final state */
+            font-weight: 500;
         }
 
         .alert.success {
@@ -82,6 +89,7 @@
             padding: 25px;
             border-radius: 10px;
             margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
         .form-section h2 {
@@ -94,7 +102,7 @@
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 15px;
             align-items: end;
@@ -103,6 +111,39 @@
         .form-group {
             display: flex;
             flex-direction: column;
+            min-width: 0; /* Prevent flex items from overflowing */
+        }
+
+        .destination-group {
+            display: flex;
+            flex-direction: column;
+            grid-column: span 2; /* Spans two columns in wider layouts */
+            min-width: 300px;
+        }
+
+        .destination-inputs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .destination-inputs input {
+            flex: 1;
+            min-width: 0; /* Allow inputs to shrink */
+        }
+
+        .arrow {
+            color: #2196F3;
+            font-weight: bold;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .remove-btn-group {
+            display: flex;
+            align-items: end;
+            justify-content: center;
         }
 
         label {
@@ -118,7 +159,9 @@
             border: 2px solid #ddd;
             border-radius: 6px;
             font-size: 14px;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            min-width: 0;
         }
 
         input:focus {
@@ -138,6 +181,13 @@
             text-decoration: none;
             display: inline-block;
             text-align: center;
+            white-space: nowrap;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
 
         .btn-primary {
@@ -147,7 +197,6 @@
 
         .btn-primary:hover {
             background: #1976D2;
-            transform: translateY(-2px);
         }
 
         .btn-success {
@@ -191,12 +240,19 @@
             color: white;
             padding: 8px 12px;
             font-size: 12px;
+            box-shadow: none; /* No shadow for small remove buttons */
         }
+        .btn-remove:hover {
+            transform: none; /* No transform for small remove buttons */
+            box-shadow: none;
+        }
+
 
         .form-actions {
             display: flex;
             gap: 15px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         /* Table Styles */
@@ -205,11 +261,13 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow-x: auto; /* Enable horizontal scrolling for small screens */
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 800px; /* Minimum width for the table */
         }
 
         th {
@@ -233,6 +291,7 @@
         .actions {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .actions .btn {
@@ -242,7 +301,7 @@
 
         /* Loading Spinner */
         .loading {
-            display: none;
+            display: none; /* Hidden by default */
             text-align: center;
             padding: 20px;
         }
@@ -269,7 +328,8 @@
             border-radius: 8px;
             margin-bottom: 20px;
             border: 1px solid #ffeaa7;
-            display: none;
+            display: none; /* Hidden by default */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
         .edit-form h3 {
@@ -279,23 +339,125 @@
 
         .edit-form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 15px;
         }
 
+        .edit-destination-group {
+            grid-column: span 2;
+            min-width: 300px;
+        }
+
+        /* Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            /* Removed display: flex here */
+            display: none; /* This ensures it's hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            animation: modalFadeIn 0.3s forwards;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        @keyframes modalFadeIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         /* Responsive Design */
+        @media (max-width: 1024px) {
+            .form-row {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+            
+            .destination-group {
+                grid-column: span 1;
+                min-width: 250px;
+            }
+            
+            .edit-destination-group {
+                grid-column: span 1;
+                min-width: 250px;
+            }
+        }
+
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .main-content {
+                padding: 20px;
+            }
+            
             .form-row {
                 grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .destination-group {
+                grid-column: span 1;
+                min-width: auto;
             }
             
             .edit-form-row {
                 grid-template-columns: 1fr;
             }
             
+            .edit-destination-group {
+                grid-column: span 1;
+                min-width: auto;
+            }
+            
+            .destination-inputs {
+                flex-direction: column;
+                gap: 5px;
+                align-items: stretch;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+                align-self: center;
+            }
+            
             .actions {
                 flex-direction: column;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions .btn {
+                width: 100%;
             }
             
             table {
@@ -304,6 +466,41 @@
             
             th, td {
                 padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 0; /* Remove margin on very small screens */
+                border-radius: 10px;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .form-section {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            input[type="text"],
+            input[type="date"],
+            input[type="number"] {
+                padding: 10px;
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 14px;
             }
         }
     </style>
@@ -331,8 +528,16 @@
                 <form id="editTripForm">
                     <div class="edit-form-row">
                         <div class="form-group">
-                            <label for="editDestination">Destination</label>
-                            <input type="text" id="editDestination" name="destination" required>
+                            <label for="editTripName">Trip Name</label>
+                            <input type="text" id="editTripName" name="tripName" placeholder="e.g., Historical Tour" required>
+                        </div>
+                        <div class="form-group edit-destination-group">
+                            <label>Destination</label>
+                            <div class="destination-inputs">
+                                <input type="text" id="editFromCity" name="fromCity" placeholder="From" required>
+                                <span class="arrow">→</span>
+                                <input type="text" id="editToCity" name="toCity" placeholder="To" required>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="editDate">Date</label>
@@ -361,8 +566,16 @@
                     <div id="tripRows">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="destination_1">Destination</label>
-                                <input type="text" id="destination_1" name="destination[]" placeholder="e.g., Cairo to Luxor" required>
+                                <label for="tripName_1">Trip Name</label>
+                                <input type="text" id="tripName_1" name="tripName[]" placeholder="e.g., Historical Tour" required>
+                            </div>
+                            <div class="form-group destination-group">
+                                <label>Destination</label>
+                                <div class="destination-inputs">
+                                    <input type="text" id="from_1" name="fromCity[]" placeholder="From (e.g., Cairo)" required>
+                                    <span class="arrow">→</span>
+                                    <input type="text" id="to_1" name="toCity[]" placeholder="To (e.g., Luxor)" required>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="date_1">Date</label>
@@ -376,7 +589,7 @@
                                 <label for="seats_1">Seats Available</label>
                                 <input type="number" id="seats_1" name="seats[]" min="1" placeholder="40" required>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group remove-btn-group">
                                 <button type="button" class="btn btn-danger btn-remove" onclick="removeRow(this)" style="display: none;">Remove</button>
                             </div>
                         </div>
@@ -393,6 +606,7 @@
                 <table id="tripsTable">
                     <thead>
                         <tr>
+                            <th>Trip Name</th>
                             <th>Destination</th>
                             <th>Date</th>
                             <th>Price</th>
@@ -408,72 +622,152 @@
         </div>
     </div>
 
-    <script>
-        // Mock data for demonstration
-        let trips = [
-            { id: 1, destination: "Cairo to Luxor", date: "2025-07-20", price: 750, seats: 40 },
-            { id: 2, destination: "Alexandria to Aswan", date: "2025-08-15", price: 920, seats: 25 },
-            { id: 3, destination: "Hurghada to Sharm El Sheikh", date: "2025-09-10", price: 450, seats: 60 }
-        ];
+    <!-- Confirmation Modal Structure -->
+    <div id="confirmationModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this trip?</p>
+            <div class="modal-actions">
+                <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+                <button id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-        let nextId = 4;
-        let rowCount = 1;
-        let editingTripId = null;
+    <script>
+        const BASE_URL = 'http://127.0.0.1:5001/api/v1/trip'; // Base URL for your API endpoints
+
+        let trips = []; // This will now hold actual data from the API
+        let rowCount = 1; // For dynamic form rows
+        let editingTripId = null; // To track which trip is being edited
+        let tripToDeleteId = null; // To track which trip is pending deletion
 
         // Initialize the dashboard
         document.addEventListener('DOMContentLoaded', function() {
             loadTrips();
             setupEventListeners();
+            updateRemoveButtons(); // Ensure initial state of remove buttons is correct
         });
 
+        // Sets up event listeners for form submissions and modal buttons
         function setupEventListeners() {
             document.getElementById('addTripsForm').addEventListener('submit', handleAddTrips);
             document.getElementById('editTripForm').addEventListener('submit', handleEditTrip);
+
+            // Modal button event listeners
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteAction);
+            document.getElementById('cancelDeleteBtn').addEventListener('click', cancelDeleteAction);
         }
 
-        // Display functions
+        // --- UI Utility Functions ---
+
+        // Displays an alert message
         function showAlert(message, type = 'success') {
-            const alert = document.getElementById('alert');
-            alert.textContent = message;
-            alert.className = `alert ${type}`;
-            alert.style.display = 'block';
+            const alertElement = document.getElementById('alert');
+            alertElement.textContent = message;
+            alertElement.className = `alert ${type}`;
+            alertElement.style.display = 'block';
             
+            // Hide alert after 5 seconds
             setTimeout(() => {
-                alert.style.display = 'none';
+                alertElement.style.display = 'none';
             }, 5000);
         }
 
+        // Shows the loading spinner
         function showLoading() {
             document.getElementById('loading').style.display = 'block';
         }
 
+        // Hides the loading spinner
         function hideLoading() {
             document.getElementById('loading').style.display = 'none';
         }
 
-        // Trip management functions
-        function loadTrips() {
+        // Shows the confirmation modal
+        function showConfirmationModal(tripId) {
+            tripToDeleteId = tripId;
+            document.getElementById('confirmationModal').style.display = 'flex'; // Set display to flex to show
+        }
+
+        // Hides the confirmation modal
+        function hideConfirmationModal() {
+            document.getElementById('confirmationModal').style.display = 'none'; // Set display to none to hide
+            tripToDeleteId = null;
+        }
+
+        // Handles the confirm action from the modal
+        function confirmDeleteAction() {
+            if (tripToDeleteId !== null) {
+                performDeleteTrip(tripToDeleteId);
+            }
+            hideConfirmationModal();
+        }
+
+        // Handles the cancel action from the modal
+        function cancelDeleteAction() {
+            hideConfirmationModal();
+        }
+
+        // --- Trip Data Management Functions (API Integrated) ---
+
+        // Fetches and displays all trips from the backend
+        async function loadTrips() {
+            showLoading();
+            try {
+                const response = await fetch(`${BASE_URL}/all-tripss`);
+                const data = await response.json();
+                console.log('trips: ', data)
+                if (response.ok) {
+                    trips = data.data; // Assuming data.payload contains the array of trips
+                    renderTripsTable();
+                    showAlert('Trips loaded successfully!', 'success');
+                } else {
+                    showAlert(`Failed to load trips: ${data.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error loading trips:', error);
+                showAlert('An error occurred while loading trips.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Renders the trips into the table
+        function renderTripsTable() {
             const tbody = document.getElementById('tripsTableBody');
-            tbody.innerHTML = '';
+            tbody.innerHTML = ''; // Clear existing rows
+
+            if (trips.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No trips available. Add some!</td></tr>';
+                return;
+            }
 
             trips.forEach(trip => {
                 const row = document.createElement('tr');
+                // Ensure trip.tripId is used for actions as per backend definition
                 row.innerHTML = `
-                    <td>${trip.destination}</td>
+                    <td><strong>${trip.tripName}</strong></td>
+                    <td>${trip.fromCity} → ${trip.toCity}</td>
                     <td>${formatDate(trip.date)}</td>
-                    <td>$${trip.price.toFixed(2)}</td>
+                    <td>$${trip.price ? trip.price.toFixed(2) : 'N/A'}</td>
                     <td>${trip.seats}</td>
                     <td class="actions">
-                        <button class="btn btn-warning" onclick="editTrip(${trip.id})">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteTrip(${trip.id})">Delete</button>
+                        <button class="btn btn-warning" onclick="editTrip('${trip.tripId}')">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteTripConfirmation('${trip.tripId}')">Delete</button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
+        // Formats a date string for display
         function formatDate(dateString) {
             const date = new Date(dateString);
+            // Check if the date is valid
+            if (isNaN(date.getTime())) {
+                return dateString; // Return original if invalid
+            }
             return date.toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'short', 
@@ -481,7 +775,7 @@
             });
         }
 
-        // Add trip functionality
+        // Adds a new row to the "Add New Trips" form
         function addRow() {
             rowCount++;
             const tripRows = document.getElementById('tripRows');
@@ -489,8 +783,16 @@
             newRow.className = 'form-row';
             newRow.innerHTML = `
                 <div class="form-group">
-                    <label for="destination_${rowCount}">Destination</label>
-                    <input type="text" id="destination_${rowCount}" name="destination[]" placeholder="e.g., Cairo to Luxor" required>
+                    <label for="tripName_${rowCount}">Trip Name</label>
+                    <input type="text" id="tripName_${rowCount}" name="tripName[]" placeholder="e.g., Historical Tour" required>
+                </div>
+                <div class="form-group destination-group">
+                    <label>Destination</label>
+                    <div class="destination-inputs">
+                        <input type="text" id="from_${rowCount}" name="fromCity[]" placeholder="From (e.g., Cairo)" required>
+                        <span class="arrow">→</span>
+                        <input type="text" id="to_${rowCount}" name="toCity[]" placeholder="To (e.g., Luxor)" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="date_${rowCount}">Date</label>
@@ -504,7 +806,7 @@
                     <label for="seats_${rowCount}">Seats Available</label>
                     <input type="number" id="seats_${rowCount}" name="seats[]" min="1" placeholder="40" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group remove-btn-group">
                     <button type="button" class="btn btn-danger btn-remove" onclick="removeRow(this)">Remove</button>
                 </div>
             `;
@@ -512,11 +814,13 @@
             updateRemoveButtons();
         }
 
+        // Removes a row from the "Add New Trips" form
         function removeRow(button) {
             button.closest('.form-row').remove();
             updateRemoveButtons();
         }
 
+        // Updates the visibility of remove buttons (hide if only one row)
         function updateRemoveButtons() {
             const rows = document.querySelectorAll('#tripRows .form-row');
             rows.forEach((row, index) => {
@@ -529,73 +833,103 @@
             });
         }
 
-        function handleAddTrips(event) {
+        // Handles the submission of the "Add New Trips" form
+        async function handleAddTrips(event) {
             event.preventDefault();
             showLoading();
 
             const formData = new FormData(event.target);
-            const destinations = formData.getAll('destination[]');
+            const tripNames = formData.getAll('tripName[]');
+            const fromCities = formData.getAll('fromCity[]');
+            const toCities = formData.getAll('toCity[]');
             const dates = formData.getAll('date[]');
             const prices = formData.getAll('price[]');
             const seats = formData.getAll('seats[]');
 
             const newTrips = [];
-            for (let i = 0; i < destinations.length; i++) {
+            for (let i = 0; i < tripNames.length; i++) {
                 newTrips.push({
-                    id: nextId++,
-                    destination: destinations[i],
+                    tripName: tripNames[i],
+                    fromCity: fromCities[i],
+                    toCity: toCities[i],
                     date: dates[i],
                     price: parseFloat(prices[i]),
                     seats: parseInt(seats[i])
                 });
             }
 
-            // Simulate API call
-            setTimeout(() => {
-                trips.push(...newTrips);
-                loadTrips();
-                event.target.reset();
-                
-                // Reset form to single row
-                const tripRows = document.getElementById('tripRows');
-                tripRows.innerHTML = `
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="destination_1">Destination</label>
-                            <input type="text" id="destination_1" name="destination[]" placeholder="e.g., Cairo to Luxor" required>
+            try {
+                const response = await fetch(`${BASE_URL}/create-trips`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ trips: newTrips })
+                });
+                const data = await response.json();
+                console.log('data: ',data);
+                if (response.ok) {
+                    showAlert(`Successfully added ${data.data.successCount} trip(s)!`, 'success');
+                    event.target.reset(); // Clear the form
+                    // Reset form to single row
+                    document.getElementById('tripRows').innerHTML = `
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tripName_1">Trip Name</label>
+                                <input type="text" id="tripName_1" name="tripName[]" placeholder="e.g., Historical Tour" required>
+                            </div>
+                            <div class="form-group destination-group">
+                                <label>Destination</label>
+                                <div class="destination-inputs">
+                                    <input type="text" id="from_1" name="fromCity[]" placeholder="From (e.g., Cairo)" required>
+                                    <span class="arrow">→</span>
+                                    <input type="text" id="to_1" name="toCity[]" placeholder="To (e.g., Luxor)" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="date_1">Date</label>
+                                <input type="date" id="date_1" name="date[]" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="price_1">Price ($)</label>
+                                <input type="number" id="price_1" name="price[]" min="0" step="0.01" placeholder="750" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="seats_1">Seats Available</label>
+                                <input type="number" id="seats_1" name="seats[]" min="1" placeholder="40" required>
+                            </div>
+                            <div class="form-group remove-btn-group">
+                                <button type="button" class="btn btn-danger btn-remove" onclick="removeRow(this)" style="display: none;">Remove</button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="date_1">Date</label>
-                            <input type="date" id="date_1" name="date[]" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="price_1">Price ($)</label>
-                            <input type="number" id="price_1" name="price[]" min="0" step="0.01" placeholder="750" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="seats_1">Seats Available</label>
-                            <input type="number" id="seats_1" name="seats[]" min="1" placeholder="40" required>
-                        </div>
-                        <div class="form-group">
-                            <button type="button" class="btn btn-danger btn-remove" onclick="removeRow(this)" style="display: none;">Remove</button>
-                        </div>
-                    </div>
-                `;
-                rowCount = 1;
-                
+                    `;
+                    rowCount = 1; // Reset row count
+                    updateRemoveButtons();
+                    loadTrips(); // Reload trips to show new data
+                } else {
+                    showAlert(`Failed to add trips: ${data.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error adding trips:', error);
+                showAlert('An error occurred while adding trips.', 'error');
+            } finally {
                 hideLoading();
-                showAlert(`Successfully added ${newTrips.length} trip(s)!`, 'success');
-            }, 1000);
+            }
         }
 
-        // Edit trip functionality
-        function editTrip(id) {
-            const trip = trips.find(t => t.id === id);
-            if (!trip) return;
+        // Populates the edit form with data of the selected trip
+        function editTrip(tripId) {
+            const trip = trips.find(t => t.tripId === tripId); // Use tripId from backend
+            if (!trip) {
+                showAlert('Trip not found for editing.', 'error');
+                return;
+            }
 
-            editingTripId = id;
-            document.getElementById('editDestination').value = trip.destination;
-            document.getElementById('editDate').value = trip.date;
+            editingTripId = tripId;
+            document.getElementById('editTripName').value = trip.tripName;
+            document.getElementById('editFromCity').value = trip.fromCity;
+            document.getElementById('editToCity').value = trip.toCity;
+            document.getElementById('editDate').value = trip.date.split('T')[0];
             document.getElementById('editPrice').value = trip.price;
             document.getElementById('editSeats').value = trip.seats;
             
@@ -603,68 +937,85 @@
             document.getElementById('editForm').scrollIntoView({ behavior: 'smooth' });
         }
 
+        // Hides the edit form and resets editing state
         function cancelEdit() {
             document.getElementById('editForm').style.display = 'none';
             editingTripId = null;
+            document.getElementById('editTripForm').reset(); // Clear form fields
         }
 
-        function handleEditTrip(event) {
+        // Handles the submission of the "Edit Trip" form
+        async function handleEditTrip(event) {
             event.preventDefault();
-            if (!editingTripId) return;
-
+            if (!editingTripId) {
+                showAlert('No trip selected for editing.', 'error');
+                return;
+            }
             showLoading();
             
             const formData = new FormData(event.target);
-            const updatedTrip = {
-                id: editingTripId,
-                destination: formData.get('destination'),
+            const updatedTripData = {
+                tripName: formData.get('tripName'),
+                fromCity: formData.get('fromCity'),
+                toCity: formData.get('toCity'),
                 date: formData.get('date'),
                 price: parseFloat(formData.get('price')),
                 seats: parseInt(formData.get('seats'))
             };
 
-            // Simulate API call
-            setTimeout(() => {
-                const index = trips.findIndex(t => t.id === editingTripId);
-                if (index !== -1) {
-                    trips[index] = updatedTrip;
-                    loadTrips();
-                    cancelEdit();
-                    hideLoading();
+            try {
+                // Backend expects :triptId in the URL, using editingTripId
+                const response = await fetch(`${BASE_URL}/update-trip/${editingTripId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedTripData)
+                });
+                const data = await response.json();
+                console.log(data)
+                if (response.ok) {
                     showAlert('Trip updated successfully!', 'success');
+                    loadTrips(); // Reload trips to show updated data
+                    cancelEdit(); // Hide edit form
+                } else {
+                    showAlert(`Failed to update trip: ${data.message || 'Unknown error'}`, 'error');
                 }
-            }, 1000);
-        }
-
-        // Delete trip functionality
-        function deleteTrip(id) {
-            if (!confirm('Are you sure you want to delete this trip?')) return;
-
-            showLoading();
-
-            // Simulate API call
-            setTimeout(() => {
-                trips = trips.filter(t => t.id !== id);
-                loadTrips();
+            } catch (error) {
+                console.error('Error updating trip:', error);
+                showAlert('An error occurred while updating the trip.', 'error');
+            } finally {
                 hideLoading();
-                showAlert('Trip deleted successfully!', 'success');
-            }, 800);
+            }
         }
 
-        // API simulation functions (for demonstration)
-        function simulateAPICall(method, endpoint, data = null) {
-            console.log(`${method} ${endpoint}`, data);
-            
-            // In a real implementation, you would use fetch:
-            /*
-            return fetch(endpoint, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: data ? JSON.stringify(data) : null
-            }).then(response => response.json());
-            */
+        // Initiates the delete confirmation process
+        function deleteTripConfirmation(tripId) {
+            showConfirmationModal(tripId);
+        }
+
+        // Performs the actual deletion after confirmation
+        async function performDeleteTrip(tripId) {
+            showLoading();
+            try {
+                const response = await fetch(`${BASE_URL}/delete-trip/${tripId}`, {
+                    method: 'DELETE',
+                    headers: {}
+                });
+                // Backend returns RESPONSE_NO_CONTENT (204) for successful deletion, so no JSON to parse
+                if (response.status === 204) { 
+                    showAlert('Trip deleted successfully!', 'success');
+                    loadTrips(); // Reload trips to reflect deletion
+                } else {
+                    const data = await response.json(); // Try to parse error message if not 204
+                    showAlert(`Failed to delete trip: ${data.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting trip:', error);
+                showAlert('An error occurred while deleting the trip.', 'error');
+            } finally {
+                hideLoading();
+            }
         }
     </script>
 </body>
